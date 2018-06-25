@@ -1,6 +1,11 @@
-from warmUpExercise import warmUpExercise
-import csv
+#/usr/bin/python3
 import numpy as np
+import matplotlib.pyplot as plt
+
+from warmUpExercise import warmUpExercise
+from computeCost import computeCost
+from plotData import plotData
+from gradientDescent import gradientDescent 
 
 # Machine Learning Online Class - Exercise 1: Linear Regression
 #  Instructions
@@ -27,109 +32,107 @@ import numpy as np
 #
 # ==================== Part 1: Basic Function ====================
 # Complete warmUpExercise.m
-print('Running warmUpExercise ... \n');
-print('5x5 Identity Matrix: \n');
+print('Running warmUpExercise ... \n')
+print('5x5 Identity Matrix: \n')
 warmUpExercise()
 
-print('Program paused. Press enter to continue.\n');
-# input()
+print('Program paused. Press enter to continue.\n')
+input()
  
 # ======================= Part 2: Plotting =======================
 print('Plotting Data ...\n')
 X, y = np.genfromtxt('ex1data1.txt', delimiter=',', unpack =True)
 
-print(X, y)
-
-# m = length(y); # number of training examples
+# https://docs.scipy.org/doc/numpy-1.14.0/reference/generated/numpy.c_.html
+# Translates slice objects to concatenation along the second axis
+X_ones = np.ones(X.shape[0])
+X = np.c_[X_ones, X]
+y = np.c_[y]
 
 # # Plot Data
 # # Note: You have to complete the code in plotData.m
-# plotData(X, y);
+plotData(X, y)
 
-# print('Program paused. Press enter to continue.\n');
-# input()
+# =================== Part 3: Cost and Gradient descent ===================
+theta = np.zeros((X.shape[1], 1))
 
-# # =================== Part 3: Cost and Gradient descent ===================
+# Some gradient descent settings
+iterations = 1500
+alpha = 0.01
 
-# X = [ones(m, 1), data(:,1)]; # Add a column of ones to x
-# theta = zeros(2, 1); # initialize fitting parameters
-
-# # Some gradient descent settings
-# iterations = 1500;
-# alpha = 0.01;
-
-# print('\nTesting the cost function ...\n')
-# # compute and display initial cost
-# J = computeCost(X, y, theta);
-# print('With theta = [0 ; 0]\nCost computed = #f\n', J);
-# print('Expected cost value (approx) 32.07\n');
+print('\nTesting the cost function ...')
+# compute and display initial cost
+J = computeCost(X, y, theta)
+print('With theta = [0 ; 0]\nCost computed = {0:2.2f}'.format(J))
+print('Expected cost value (approx) 32.07\n')
 
 # # further testing of the cost function
-# J = computeCost(X, y, [-1 ; 2]);
-# print('\nWith theta = [-1 ; 2]\nCost computed = #f\n', J);
-# print('Expected cost value (approx) 54.24\n');
+J = computeCost(X, y, [[-1], [2]])
+print('With theta = [-1 ; 2]\nCost computed = {0:2.2f}'.format(J))
+print('Expected cost value (approx) 54.24')
 
-# print('Program paused. Press enter to continue.\n');
-# input()
+print('Program paused. Press enter to continue.\n')
+input()
 
-# print('\nRunning Gradient Descent ...\n')
-# # run gradient descent
-# theta = gradientDescent(X, y, theta, alpha, iterations);
+print('\nRunning Gradient Descent ...\n')
+# run gradient descent
+theta, Cost_J = gradientDescent(X, y, theta, alpha, iterations)
 
-# # print theta to screen
-# print('Theta found by gradient descent:\n');
-# print('#f\n', theta);
-# print('Expected theta values (approx)\n');
-# print(' -3.6303\n  1.1664\n\n');
+# print theta to screen
+print('Theta found by gradient descent:\n')
+print('theta: ',theta.ravel())
+print('Expected theta values (approx)\n')
+print(' -3.6303\n  1.1664\n\n')
 
-# # Plot the linear fit
-# hold on; # keep previous plot visible
-# plot(X(:,2), X*theta, '-')
-# legend('Training data', 'Linear regression')
-# hold off # don't overlay any more plots on this figure
+# Plot the linear fit
+plt.plot(Cost_J)
+plt.ylabel('Cost J')
+plt.xlabel('Iterations')
 
-# # Predict values for population sizes of 35,000 and 70,000
-# predict1 = [1, 3.5] *theta;
-# print('For population = 35,000, we predict a profit of #f\n',...
-#     predict1*10000);
-# predict2 = [1, 7] * theta;
-# print('For population = 70,000, we predict a profit of #f\n',...
-#     predict2*10000);
+# Predict values for population sizes of 35,000 and 70,000
+predict1 = theta.T.dot([1, 3.5]) * 10000
+print('For population = 35,000, we predict a profit of #f\n', predict1)
+predict2 = theta.T.dot([1, 7]) * 10000
+print('For population = 70,000, we predict a profit of #f\n', predict2)
 
-# print('Program paused. Press enter to continue.\n');
-# input()
+print('Program paused. Press enter to continue.\n')
+input()
 
-# # ============= Part 4: Visualizing J(theta_0, theta_1) =============
-# print('Visualizing J(theta_0, theta_1) ...\n')
+# ============= Part 4: Visualizing J(theta_0, theta_1) =============
+print('Visualizing J(theta_0, theta_1) ...\n')
 
-# # Grid over which we will calculate J
-# theta0_vals = linspace(-10, 10, 100);
-# theta1_vals = linspace(-1, 4, 100);
+# Create grid coordinates for plotting
+B0 = np.linspace(-10, 10, 50) # Return evenly spaced numbers over a specified interval
+B1 = np.linspace(-1, 4, 50)  # (from -1 to 4 return 50 numbers evenly spaced)
 
-# # initialize J_vals to a matrix of 0's
-# J_vals = zeros(length(theta0_vals), length(theta1_vals));
+#Make N-D coordinate arrays for vectorized evaluations of N-D scalar/vector fields 
+#over N-D grids, given one-dimensional coordinate arrays x1, x2,..., xn
+xx, yy = np.meshgrid(B0, B1, indexing='xy')
+Z = np.zeros((B0.size,B1.size)) # make zero matrix same size
 
-# # Fill out J_vals
-# for i = 1:length(theta0_vals)
-#     for j = 1:length(theta1_vals)
-# 	  t = [theta0_vals(i); theta1_vals(j)];
-# 	  J_vals(i,j) = computeCost(X, y, t);
-#     end
-# end
+# Calculate Z-values (Cost) based on grid of coefficients
+for (i,j),v in np.ndenumerate(Z): #Return an iterator yielding pairs of array coordinates and values. 
+    Z[i,j] = computeCost(X,y, theta=[[xx[i,j]], [yy[i,j]]])
 
 
-# # Because of the way meshgrids work in the surf command, we need to
-# # transpose J_vals before calling surf, or else the axes will be flipped
-# J_vals = J_vals';
-# # Surface plot
-# figure;
-# surf(theta0_vals, theta1_vals, J_vals)
-# xlabel('\theta_0'); ylabel('\theta_1');
+fig = plt.figure(figsize=(15,6))
+ax1 = fig.add_subplot(121)
+ax2 = fig.add_subplot(122, projection='3d')
 
-# # Contour plot
-# figure;
-# # Plot J_vals as 15 contours spaced logarithmically between 0.01 and 100
-# contour(theta0_vals, theta1_vals, J_vals, logspace(-2, 3, 20))
-# xlabel('\theta_0'); ylabel('\theta_1');
-# hold on;
-# plot(theta(1), theta(2), 'rx', 'MarkerSize', 10, 'LineWidth', 2);
+# Left plot
+
+CS = ax1.contour(xx, yy, Z, np.logspace(-2, 3, 20), cmap=plt.jet)
+ax1.scatter(theta[0],theta[1], c='r')
+
+# Right plot
+ax2.plot_surface(xx, yy, Z, rstride=1, cstride=1, alpha=0.6, cmap=plt.jet)
+ax2.set_zlabel('Cost')
+ax2.set_zlim(Z.min(),Z.max())
+ax2.view_init(elev=15, azim=230)
+
+# settings common to both plots
+for ax in fig.axes:
+    ax.set_xlabel(r'$\theta_0$', fontsize=17)
+    ax.set_ylabel(r'$\theta_1$', fontsize=17)
+
+plt.show()
