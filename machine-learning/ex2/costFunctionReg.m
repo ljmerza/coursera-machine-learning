@@ -25,16 +25,16 @@ zeros_logistic = (1-y)'*log(1 - sigmoid_logistic);
 % skip the first theta - we don't regularize it
 theta_to_regularize = theta(2:length(theta));
 
-regularized = (lambda/(2*m)) * sum(theta_to_regularize) .* theta_to_regularize;
-J = ((1/m) * sum(ones_logistic - zeros_logistic)) + regularized;
+regularized = (lambda/(2*m)) * sum(theta_to_regularize .* theta_to_regularize);
+J = ((1 / m) * sum(ones_logistic - zeros_logistic)) + regularized;
 
 
-% calc cost function derivative and resize matrix with zeros for X multiplication
+% calc cost function derivative and repeat matrix to resize for X multiplication
 copied_mat = repmat((sigmoid(X*theta) - y), 1, size(X,2));
 grad = (1/m) * sum(X .* copied_mat);
 
 % only replace values after the first theta
-grad(:,2:length(grad)) = grad(:,2:length(grad)) + (lambda/m) * theta_to_regularize';
+grad(:,2:length(grad)) = grad(:,2:length(grad)) + (lambda/m)*theta_to_regularize';
 
 % =============================================================
 

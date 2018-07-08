@@ -1,15 +1,14 @@
 import numpy as np
 
 def computeCost(X, y, theta):
-    m = y.size
-    J = 0
-    
+    m = len(y)
     h = hypothesis(X, theta)
-    sqError = np.power(h-y, 2)
-
-    J = 1/(2*m) * np.sum(sqError)
-    
-    return J
+    return (1.0/(2*m)) * errorSquared(h, y).sum(axis=0)
 
 def hypothesis(X, theta):
     return X.dot(theta)
+
+def errorSquared(h, y):
+    error_val =  h - np.transpose([y])
+    return  np.power(error_val, 2)
+    

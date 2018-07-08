@@ -1,56 +1,107 @@
-import numpy as np
+#!/usr/bin/env python
+
+# python adaptation of solved ex1_multi.m
+# 
+# Linear regression with multiple variables
+# 
+# depends on 
+#   - featureNormalize.py
+#   - gradientDescentMulti.py
+#   - normalEqn.py
+#
+
+## Initialization
+import numpy as np 
 import matplotlib.pyplot as plt
+import featureNormalize as fn
+import gradientDescentMulti as gdm
+import normalEqn as ne
 
-from gradientDescentMulti import gradientDescentMulti 
+## ================ Part 1: Feature Normalization ================
 
-datafile = 'ex1data2.txt'
+print('Loading data ...\n')
 
-cols = np.loadtxt(datafile, delimiter=',', usecols=(0,1,2), unpack=True)
+## Load Data
+data = np.loadtxt('ex1data2.txt', delimiter=",")
+X = data[:,:2]
+y = data[:,2]
+m = len(y) # number of training examples
 
-X = np.transpose(np.array(cols[:-1]))
-y = np.transpose(np.array(cols[-1:]))
+# Scale features and set them to zero mean
+print('Normalizing Features...')
+X_norm, mu, sigma = fn.featureNormalize(X)
 
-m = y.size # number of training examples
+X_padded = np.column_stack((np.ones((m,1)), X_norm)) # Add a column of ones to x
 
-# insert ones column into X matrix
-X = np.insert(X, 0, 1, axis=1)
 
-plt.grid(True)
-plt.xlim([-100,5000])
-dummy = plt.hist(X[:,0],label = 'col1')
-dummy = plt.hist(X[:,1],label = 'col2')
-dummy = plt.hist(X[:,2],label = 'col3')
-plt.title('Feature Raw Data')
-plt.xlabel('Column Value')
-plt.ylabel('Counts')
-dummy = plt.legend()
+## ================ Part 2: Gradient Descent ================
+print('Running gradient descent...')
+
+alpha = 0.01
+num_iters = 10000
+
+# Init Theta and Run Gradient Descent 
+theta = np.zeros((3, 1)) 
+theta, J_history = gdm.gradientDescentMulti(X_padded, y, theta, alpha, num_iters)
+
+# Plot the convergence graph
+plt.plot(range(J_history.size), J_history, "-b", linewidth=2)
+plt.xlabel('Number of iterations')
+plt.ylabel('Cost J')
 plt.show()
 
-feature_means = []
-feature_stds = []
+# Display gradient descent's result
+print('Theta computed from gradient descent: ')
+print("{:f}, {:f}, {:f}\n".format(theta[0,0], theta[1,0], theta[2,0]))
 
-Xnorm = X.copy()
-for col in np.arange(Xnorm.shape[1]):
-    feature_means.append(np.mean(Xnorm[:,col]))
-    feature_stds.append(np.std(Xnorm[:,col]))
+# Estimate the price of a 1650 sq-ft, 3 br house
+# ====================== YOUR CODE HERE ======================
+# Recall that the first column of X is all-ones. Thus, it does
+# not need to be normalized.
+area_norm = (1650 - float(mu[:,0])) / float(sigma[:,0])
+br_norm = (3 - float(mu[:,1]))/float(sigma[:,1])
+house_norm_padded = np.array([1, area_norm, br_norm])
 
-    # skip first column when gdoing normalization
-    if not col: continue
+price = np.array(house_norm_padded).dot(theta)
 
-    # get last mean/std added
-    Xnorm[:,col] = (Xnorm[:,col] - feature_means[-1]) / feature_stds[-1]
+# ============================================================
+print("Predicted price of a 1650 sq-ft, 3 br house (using gradient descent):\n ${:,.2f}".format(price[0]))
 
-# feature normalized data
-plt.grid(True)
-plt.xlim([-5,5])
-dummy = plt.hist(Xnorm[:,0],label = 'col1')
-dummy = plt.hist(Xnorm[:,1],label = 'col2')
-dummy = plt.hist(Xnorm[:,2],label = 'col3')
-plt.title('Feature Normalization')
-plt.xlabel('Column Value')
-plt.ylabel('Counts')
-dummy = plt.legend()
-plt.show()
+## ================ Part 3: Normal Equations ================
+print('Solving with normal equations...')
 
-initial_theta = np.zeros((Xnorm.shape[1],1))
-theta, thetahistory, jvec = gradientDescentMulti(Xnorm, initial_theta)
+# ====================== YOUR CODE HERE ======================
+# Instructions: The following code computes the closed form 
+#               solution for linear regression using the normal
+#               equations. You should complete the code in 
+#               normalEqn.m
+#
+#               After doing so, you should complete this code 
+#               to predict the price of a 1650 sq-ft, 3 br house.
+#
+
+## Load Data
+data = np.loadtxt('ex1data2.txt', delimiter=",")
+X = data[:,:2]
+y = data[:,2]
+m = len(y) # number of training examples
+
+# Add intercept term to X
+X_padded = np.column_stack((np.ones((m,1)), X)) 
+
+# Calculate the parameters from the normal equation
+theta = ne.normalEqn(X_padded, y)
+
+# Display normal equation's result
+print('Theta computed from the normal equations:')
+print("{:f}, {:f}, {:f}\n".format(theta[0], theta[1], theta[2]))
+
+
+# Estimate the price of a 1650 sq-ft, 3 br house
+# ====================== YOUR CODE HERE ======================
+house_norm_padded = np.array([1, 1650, 3])
+price = np.array(house_norm_padded).dot(theta)
+
+# ============================================================
+
+print("Predicted price of a 1650 sq-ft, 3 br house (using gradient descent):\n ${:,.2f}".format(price))

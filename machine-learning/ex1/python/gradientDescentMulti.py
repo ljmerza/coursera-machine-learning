@@ -1,26 +1,17 @@
 import numpy as np
 from computeCost import computeCost
 
-def gradientDescentMulti(X, theta_start = np.zeros(2)):
-    theta = theta_start
-    jvec = [] #Used to plot cost as function of iteration
-    thetahistory = [] #Used to visualize the minimization path later on
+def gradientDescentMulti(X, y, theta=np.zeros(2), alpha=0.01, iterations=10000):
+    m = len(y)
+    J_history = np.zeros(iterations)
 
-    for col in np.arange(iterations):
-        itr_theta = theta
-        cost = computeCost(X, y, theta)
-        jvec.append(cost)
+    for itr in np.arange(iterations):
+        hypothesis = X.dot(theta)
+        error = hypothesis - np.transpose([y])
 
-        thetahistory.append( list(theta[:,0]) )
+        gradient = (1.0/m) * X.T.dot(error)
+        theta = theta - alpha * gradient
 
-        for j in np.arange(len(tmptheta)):
-             tmptheta[j] = theta[j] - (alpha/m)*np.sum((h(initial_theta,X) - y)*np.array(X[:,j]).reshape(m,1))
+        J_history[itr] = computeCost(X, y, theta)
 
-
-def hypothesis(theta, X):
-    return np.dot(X,theta)
-
-def computeCost(theta, X, y):
-    h = hypothesis(mytheta,X)
-
-    return float((1./(2*m)) * np.dot((h-y).T, (h-y)))
+    return theta, J_history
